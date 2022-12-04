@@ -1,13 +1,14 @@
 import { createSlice } from "@reduxjs/toolkit"
 import { todoApi } from "../../services/todoApi"
-import { PaginatedTodoResponse } from "../../utils/types"
+import { Todos } from "../../utils/types"
 
-interface Todos {
-    todos:PaginatedTodoResponse[]
-}
+
 
 const initialState:Todos = {
-    todos:[]
+    todos:{
+        apiResponse:[],
+        totalCount:0
+    }
 }
 
 const todoSlice = createSlice({
