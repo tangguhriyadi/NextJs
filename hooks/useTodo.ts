@@ -6,7 +6,7 @@ import { useAppSelector } from "../redux/store";
 export const useTodo = ({ start, limit }: ParamProps) => {
   const [datas, setDatas] = useState<PaginatedTodoResponse[]>([]);
 
-  const { data: data } = useGetTodosQuery({ start, limit });
+  const { data: data, isFetching } = useGetTodosQuery({ start, limit });
 
   const totalCount = useAppSelector((state) => state.todos.todos.totalCount);
 
@@ -22,5 +22,6 @@ export const useTodo = ({ start, limit }: ParamProps) => {
   return {
     datas,
     pageCount,
+    isFetching
   };
 };

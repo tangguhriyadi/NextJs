@@ -7,17 +7,19 @@ export const todoApi = createApi({
   baseQuery: baseQuery,
   tagTypes: ["Todos"],
   endpoints: (builder) => ({
-    getTodos: builder.query<{ apiResponse: PaginatedTodoResponse[]; totalCount: number }, ParamProps>({
+    getTodos: builder.query<{ apiResponse: PaginatedTodoResponse[]; totalCount: number },ParamProps>({
       query: (param) => ({
         url: `/todos?_start=${param.start}&_limit=${param.limit}`,
       }),
       providesTags: (result) =>
         result
           ? [
-              ...result.apiResponse.map(({ id }) => ({ type: "Posts", id } as const)),
-              { type: "Posts", id: "LIST" },
+              ...result.apiResponse.map(
+                ({ id }) => ({ type: "Todos", id } as const)
+              ),
+              { type: "Todos", id: "LIST" },
             ]
-          : [{ type: "Posts", id: "LIST" }],
+          : [{ type: "Todos", id: "LIST" }],
       transformResponse(apiResponse, meta) {
         return {
           apiResponse,
@@ -25,7 +27,15 @@ export const todoApi = createApi({
         };
       },
     }),
+    createTodo: builder.mutation<Partial<PaginatedTodoResponse>, any>({
+      query: (param) => ({
+        url: `/todos`,
+        method: "POST",
+        body: param,
+      }),
+      invalidatesTags: [{ type: "Todos", id: "LIST" }],
+    }),
   }),
 });
 
-export const { useGetTodosQuery } = todoApi;
+export const { useGetTodosQuery, useCreateTodoMutation } = todoApi;

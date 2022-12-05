@@ -7,21 +7,52 @@ import {
   Card,
   CardHeader,
   CardBody,
-  CardText,
   CardTitle,
   Container,
+  Button,
 } from "reactstrap";
 import Label from "./Label";
+import ModalCreateTodo from "./ModalCreateTodo";
+import { useFormik } from "formik";
+import { PaginatedTodoResponse } from "../utils/types";
+import { useCreateTodoMutation } from "../services/todoApi";
+import { toast } from "react-toastify";
+import SkeletonLoading from "./SkeletonLoading";
 
 const Home: React.FC = () => {
   const [start, setStart] = useState<number>(0);
 
-  const { datas, pageCount } = useTodo({ start: start, limit: 10 });
+  const { datas, pageCount, isFetching } = useTodo({ start: start, limit: 10 });
 
   const handlePageClick = (e: any) => {
     const _start = e.selected * 10;
     setStart(_start);
   };
+
+  const [modal, setModal] = useState(false);
+
+  const toggle = () => setModal(!modal);
+
+  const [createTodo, { isLoading }] = useCreateTodoMutation();
+
+  const notify = () => toast.success("Success !");
+
+  const initialValues: Partial<PaginatedTodoResponse> = {
+    title: "",
+    userId: 0,
+    completed: false,
+  };
+
+  const formik = useFormik({
+    initialValues: initialValues,
+    onSubmit: (val) => {
+      createTodo(val)
+        .unwrap()
+        .then(() => notify())
+        .then(() => setModal(!modal));
+    },
+  });
+
   return (
     <>
       <h1 className="text-center">To-do List !</h1>
@@ -43,8 +74,14 @@ const Home: React.FC = () => {
           breakLinkClassName={"page-link"}
           activeClassName={"active"}
         />
+
         <Row className="px-5 mx-5">
-          {datas &&
+          <div className="text-center">
+            <Button onClick={toggle} color="primary" disabled={isLoading}>
+              Add New Todo
+            </Button>
+          </div>
+          {datas && !isFetching ? (
             datas.map((data, i) => (
               <Col className="d-flex justify-content-center" key={i} md="6">
                 <Card
@@ -54,18 +91,26 @@ const Home: React.FC = () => {
                     color: "black",
                   }}
                 >
-                  <CardHeader className="d-flex justify-content-between">User Id : {data.userId} <Label isCompleted={data.completed} /></CardHeader>
+                  <CardHeader className="d-flex justify-content-between">
+                    User Id : {data.userId}{" "}
+                    <Label isCompleted={data.completed} />
+                  </CardHeader>
                   <CardBody>
                     <CardTitle tag="h5">{data.title}</CardTitle>
-                    <CardText>
-                      With supporting text below as a natural lead-in to
-                      additional content.
-                    </CardText>
                   </CardBody>
                 </Card>
               </Col>
-            ))}
+            ))
+          ) : (
+            <SkeletonLoading count={10} />
+          )}
         </Row>
+        <ModalCreateTodo
+          isLoading={isLoading}
+          formik={formik}
+          isOpen={modal}
+          toggle={toggle}
+        />
       </Container>
     </>
   );
